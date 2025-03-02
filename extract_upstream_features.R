@@ -32,12 +32,37 @@ rpadi_promoters = trim(rpadi_promoters)
 # now extract these (possibly shortened) promoter ranges
 rpadi_upseqs = getSeq(rpadi_fafile, rpadi_promoters)
 
-## if you want them oriented in the gene’s 5'->3' direction, most of the time this is not what we want
+## if you want them oriented in the gene’s 5'->3' direction,
 # neg_idx = strand(rpadi_promoters) == "-"
 # rpadi_upseqs[neg_idx] = reverseComplement(rpadi_upseqs[neg_idx])
 
 # rename the sequences using your gene IDs
 names(rpadi_upseqs) = rpadi_genes$gene_id
 
-## write to a FASTA file with gene names. Blast the seq and view in jbrowse with v2 annotations labelled to see if things line up
-writeXStringSet(rpadi_upseqs, "rpadi_upstream_promoters.fasta")
+
+# Build a descriptive FASTA name per promoter:
+prom_chr     = as.character(seqnames(rpadi_promoters))
+prom_start   = start(rpadi_promoters)
+prom_end     = end(rpadi_promoters)
+prom_strand  = as.character(strand(rpadi_promoters))
+gene_ids     = rpadi_genes$gene_id  # same order as rpadi_promoters
+
+# For instance: "g1|scf7180000007785:2235-6402(-)"
+my_names = paste0(
+  gene_ids, 
+  "|", 
+  prom_chr, 
+  ":", 
+  prom_start, 
+  "-", 
+  prom_end, 
+  "(",
+  prom_strand, 
+  ")"
+)
+
+# Now assign these to your DNAStringSet object:
+names(rpadi_upseqs) = my_names
+
+# write to a FASTA file with gene names. Blast the seq and view in jbrowse with v2 annotations labelled to see if things line up
+writeXStringSet(rpadi_upseqs, "rpadi_upstream_promoters_w-descriptions.fasta")
