@@ -2,4 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-genome_gff/R_padi_v2.fasta
+./genome_gff/GCF_020882245.1_ASM2088224v1_genomic.fna
+./genome_gff/GCF_020882245.1_ASM2088224v1_genomic.fna.fai
+./genome_gff/GCF_020882245.1_ASM2088224v1_genomic.gff
+./genome_gff/rpadi_V4_txdb.sqlite
