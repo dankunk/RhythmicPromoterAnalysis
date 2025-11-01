@@ -3,3 +3,169 @@ title: "ExtractUpstreamFeatures"
 output: html_document
 ---
 
+# Extract Features Upstream and Downstream of the TSS.
+
+
+## 1. Load Libraries
+
+```{r}
+# load libraries
+#library(txdbmaker)
+library(GenomicFeatures)
+library(Rsamtools)
+library(Biostrings)
+library(dplyr)
+```
+
+## 2. 
+
+The indexed genome (.fna.fai), the genome, and the transcript database (created in create_TxDb.R) are first loaded.
+```{r}
+# set path to genome 
+rpadi_genome = "./genome_gff/GCF_020882245.1_ASM2088224v1_genomic.fna"
+
+# This will load the fai file according to the rpadi_genome file name using sprint.
+rpadi_fafile = FaFile(rpadi_genome)
+
+# set path to database (it should have info for chromosome starts and ends, see create_TxDb.R)
+rpadi_txdb = loadDb("./genome_gff/rpadi_V4_txdb.sqlite")
+```
+
+## 3.
+
+Now we will grab all the genes and their promoters, then extract regions up and downstream of the transcription start site.
+```{r}
+# extract genes 
+rpadi_genes = genes(rpadi_txdb)
+
+# view extracted genes
+head(rpadi_genes)
+
+# extract promoter regions around each gene TSS:
+rpadi_promoters = promoters(rpadi_genes, upstream=1500, downstream=150)
+
+# trim them so they don't exceed contig boundaries:
+rpadi_promoters = trim(rpadi_promoters)
+
+# now extract these (possibly shortened) promoter ranges
+rpadi_upseqs = getSeq(rpadi_fafile, rpadi_promoters)
+
+## if you want them oriented in the gene’s 5'->3' direction,
+neg_idx = strand(rpadi_promoters) == "-"
+rpadi_upseqs[neg_idx] = reverseComplement(rpadi_upseqs[neg_idx])
+
+# rename the sequences using your gene IDs
+names(rpadi_upseqs) = rpadi_genes$gene_id
+```
+
+## 4. 
+
+For our dryR analysis we have a list of transcripts per each model that correspond to genes. These transcripts are in the "rna-XM" notation but our genes are in a different notation. Furthermore, one gene might be the parent of many transcripts.
+
+
+This code will grab all of the promoters for each gene in our specific list. Then it will allow the user to save to directories.
+```{r}
+
+library(GenomicFeatures)
+library(AnnotationDbi)
+library(dplyr)
+library(Biostrings)
+
+# --- helpers ---
+normalize_xm = function(x) {
+  x = as.character(x)
+  x = sub("^rna-", "", x)                 # drop "rna-" prefix
+  x = sub("(\\.t\\d+)?(\\.\\d+)?$", "", x) # drop ".t{n}" and/or ".{version}" suffix
+  x
+}
+
+# --- 1) Build XM to LOC mapping from TxDb (robust to column name variants) ---
+tx_cols    = AnnotationDbi::columns(rpadi_txdb)
+tx_field   = intersect(c("TXNAME","tx_name"), tx_cols)[1]
+gene_field = intersect(c("GENEID","gene_id"), tx_cols)[1]
+stopifnot(length(tx_field) == 1, length(gene_field) == 1)
+
+tx_map_raw = AnnotationDbi::select(
+  rpadi_txdb,
+  keys    = AnnotationDbi::keys(rpadi_txdb, keytype = tx_field),
+  keytype = tx_field,
+  columns = c(tx_field, gene_field)
+) %>% distinct()
+
+# normalize mapping
+tx_map = tx_map_raw %>%
+  mutate(
+    geneName   = .data[[tx_field]],
+    gene_id    = as.character(.data[[gene_field]]),
+    xm_norm    = normalize_xm(geneName),
+    # ensure LOC prefix if the underlying gene_id is numeric/blank of LOC:
+    loc_id     = ifelse(is.na(gene_id) | gene_id == "", NA_character_,
+                        ifelse(grepl("^LOC", gene_id), gene_id, paste0("LOC", gene_id)))
+  ) %>%
+  filter(!is.na(xm_norm), !is.na(loc_id)) %>%
+  select(xm_norm, loc_id) %>%
+  distinct()
+
+# quick sanity checks
+cat("#TxDb map rows:", nrow(tx_map_raw), " = usable:", nrow(tx_map), "\n")
+
+# --- 2) Writer that normalizes CSV XM ids, joins to LOC, and writes FASTA ---
+write_promoters_for = function(df, out_fasta, id_col = "geneName") {
+  stopifnot(id_col %in% colnames(df))
+  csv_norm = df %>%
+    transmute(xm_norm = normalize_xm(.data[[id_col]])) %>%
+    distinct()
+
+  # join to LOC via normalized XM
+  mapped = csv_norm %>% left_join(tx_map, by = "xm_norm")
+
+  # diagnostics
+  n_csv     = nrow(csv_norm)
+  n_mapped  = sum(!is.na(mapped$loc_id))
+  loc_in_db = intersect(na.omit(mapped$loc_id), names(rpadi_upseqs))
+  n_haveseq = length(loc_in_db)
+  cat(sprintf(
+    "[%s] CSV=%d | mapped XM→LOC=%d | with promoter seq=%d\n",
+    out_fasta, n_csv, n_mapped, n_haveseq
+  ))
+
+  # write
+  writeXStringSet(rpadi_upseqs[loc_in_db], out_fasta)
+}
+
+# --- 3) Write FASTAs (adjust paths as needed) ---
+# example write_promoters_for(light_driven, "promoters_light_driven_1500bp_5to3.fasta")
+# example write_promoters_for(endogenous,  "promoters_endogenous_1500bp_5to3.fasta")
+
+
+```
+
+
+## 5. Saving all dryR model promoter regions to directories for further analysis with the meme suite of tools.
+
+Our dryR model transcript IDs can be found in the "./model_promoter_fastas/dryR_v2_geneIDs" directory.
+Our promoter fasta files will ultimately be saved to the "./model_promoter_fastas/" directory. 
+```{r}
+# loading wheat models
+wheat_model2 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model2.txt", col.names = "geneName")
+wheat_model3 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model3.txt", col.names = "geneName")
+wheat_model4 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model4.txt", col.names = "geneName")
+wheat_model5 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model5.txt", col.names = "geneName")
+
+# diet models
+diet_model2 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model2.txt", col.names = "geneName")
+diet_model3 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model3.txt", col.names = "geneName")
+diet_model4 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model4.txt", col.names = "geneName")
+
+# write wheat promoter files
+write_promoters_for(wheat_model2, "./model_promoter_fastas/wheat_model2_promoters_1500bp-150bp_5to3.fasta")
+write_promoters_for(wheat_model3, "./model_promoter_fastas/wheat_model3_promoters_1500bp-150bp_5to3.fasta")
+write_promoters_for(wheat_model4, "./model_promoter_fastas/wheat_model4_promoters_1500bp-150bp_5to3.fasta")
+write_promoters_for(wheat_model5, "./model_promoter_fastas/wheat_model5_promoters_1500bp-150bp_5to3.fasta")
+
+# write diet promoters
+write_promoters_for(diet_model2, "./model_promoter_fastas/diet_model2_promoters_1500bp-150bp_5to3.fasta")
+write_promoters_for(diet_model3, "./model_promoter_fastas/diet_model3_promoters_1500bp-150bp_5to3.fasta")
+write_promoters_for(diet_model4, "./model_promoter_fastas/diet_model4_promoters_1500bp-150bp_5to3.fasta")
+```
+
