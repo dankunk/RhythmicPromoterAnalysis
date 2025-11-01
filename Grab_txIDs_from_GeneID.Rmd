@@ -1,0 +1,99 @@
+---
+title: "Grab_txIDs_from_GeneID"
+output: html_document
+---
+
+```{r}
+## ---- packages ----
+# install.packages(c("dplyr","readr"))           # if needed
+# BiocManager::install("GenomicFeatures")        # if needed
+library(dplyr)
+library(readr)
+library(GenomicFeatures)
+
+## ---- inputs: your two columns of LOCs ----
+# Replace this block with readr::read_tsv("your_two_col_file.tsv", col_names = c("streme5_spps","meme8_mad_bhlh"))
+loc_pairs =
+ as_tibble( read.csv("C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/hlh_spps_kruppel-like_geneIDS.csv", header = T))
+
+## ---- path to your GFF ----
+gff_path = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/GCF_020882245.1_ASM2088224v1_genomic.gff"  # <-- set this
+
+## ---- build LOC -> XM mapping from the GFF via TxDb ----
+txdb = loadDb("C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/rpadi_V4_txdb.sqlite")
+
+# Be tolerant of TxDb column name variants across versions
+tx_cols   = columns(txdb)
+tx_field  = intersect(c("TXNAME","tx_name"), tx_cols)[1]
+gene_field= intersect(c("GENEID","gene_id"), tx_cols)[1]
+stopifnot(!is.na(tx_field), !is.na(gene_field))
+
+# Pull (transcript_name, gene_id) and coerce gene IDs to LOC-strings if needed
+tx_map =
+  AnnotationDbi::select(
+    txdb,
+    keys    = keys(txdb, keytype = tx_field),
+    keytype = tx_field,
+    columns = c(tx_field, gene_field)
+  ) %>%
+  distinct() %>%
+  mutate(
+    gene_id = as.character(.data[[gene_field]]),
+    loc     = ifelse(grepl("^LOC", gene_id), gene_id, paste0("LOC", gene_id)),
+    xm_raw  = .data[[tx_field]]
+  )
+
+# --- build mapping: XM_ > XR_ > other; keep 'rna-' prefix for OmicsBox
+loc_to_tx_first =
+  tx_map %>%
+  filter(!is.na(xm_raw), nzchar(xm_raw)) %>%
+  mutate(
+    tx_clean = sub("^rna-", "", xm_raw),
+    priority = dplyr::case_when(
+      grepl("^XM_", tx_clean) ~ 1L,
+      grepl("^XR_", tx_clean) ~ 2L,
+      TRUE                    ~ 3L
+    )
+  ) %>%
+  arrange(loc, priority, tx_clean) %>%
+  group_by(loc) %>%
+  summarise(tx_first = dplyr::first(tx_clean), .groups = "drop") %>%
+  mutate(tx_first = ifelse(is.na(tx_first), NA_character_, paste0("rna-", tx_first)))
+
+# two renamed copies for clean joins (so we never rename in the main df)
+map_streme = loc_to_tx_first %>% dplyr::rename(streme5_spps_XM = tx_first)
+map_meme   = loc_to_tx_first %>% dplyr::rename(meme8_mad_bhlh_XM = tx_first)
+
+# ensure join keys are clean character strings
+loc_pairs = loc_pairs %>%
+  mutate(
+    across(where(is.factor), as.character),
+    `streme.5...spps` = trimws(as.character(`streme.5...spps`)),
+    `meme8...mad.bhlh` = trimws(as.character(`meme8...mad.bhlh`))
+  )
+
+# join (no post-join rename needed)
+out =
+  loc_pairs %>%
+  left_join(map_streme, by = c("streme.5...spps" = "loc")) %>%
+  left_join(map_meme,   by = c("meme8...mad.bhlh" = "loc"))
+
+# quick sanity check
+out %>% summarise(
+  n_na_streme = sum(is.na(streme5_spps_XM)),
+  n_na_meme   = sum(is.na(meme8_mad_bhlh_XM))
+)
+
+
+out_spps = out %>%
+  dplyr::select(streme5_spps_XM)
+
+
+out_mad_bhlh = out %>%
+  dplyr::select(meme8_mad_bhlh_XM)
+
+
+write.table(out_spps, file = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/spps_kruppel-like_RNAIDS.txt", quote = F, col.names = F, row.names = F)
+write.table(out_mad_bhlh, file = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/mad_bHLH-like_RNAIDS.txt", quote = F, col.names = F, row.names = F)
+```
+

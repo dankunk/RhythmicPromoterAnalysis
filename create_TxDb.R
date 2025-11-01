@@ -19,6 +19,7 @@ setwd('C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_a
 
 # Path to your genome FASTA
 rpadi_genome = "R_padi_v2.fasta"
+rpadi_genome = "GCF_020882245.1_ASM2088224v1_genomic.fna"
 
 ## make or read an index for that FASTA
 ## If it's not already indexed, you can do:
@@ -42,14 +43,16 @@ head(chrominfo_df)
 
 # load path to gff file
 rpadi_gff = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/Rpadi_v2.gff"
+rpadi_gff = "GCF_020882245.1_ASM2088224v1_genomic.gff"
 
 
 # generate tx database
 rpadi_txdb = makeTxDbFromGFF(rpadi_gff, 
-                dataSource = "AphidBase Annotation Version 2",
+                dataSource = "AphidBase Annotation Version 4",
                 organism = "Rhopalosiphum padi",
                 taxonomyId = 40932,
-                chrominfo = chrominfo_df
+                chrominfo = chrominfo_df,
+                format = "gff3"
                 )
 # check database 
 rpadi_txdb
@@ -71,4 +74,4 @@ rpadi_txdb
 setwd('C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/')
 saveDb(rpadi_txdb, file="rpadi_V2_txdb.sqlite")
 
-
+saveDb(rpadi_txdb, file="rpadi_V4_txdb.sqlite")
