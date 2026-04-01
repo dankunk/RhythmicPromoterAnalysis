@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # Promoter Analysis Pipeline for *Rhopalosiphum padi*
 
 This repository contains scripts and analysis workflows used to generate
