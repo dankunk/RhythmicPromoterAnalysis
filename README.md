@@ -58,7 +58,7 @@ Large genome files, intermediate outputs, and motif analysis results
 (e.g., XSTREME output directories) are excluded from version control to
 maintain a lightweight and reproducible repository. These files can be
 regenerated using the provided scripts or accessed via associated data
-repositories (e.g., Figshare).
+repositories (e.g., AphidBase for genome data, NCBI bioproject/Figshare for raw data, etc.).
 
 ## Requirements
 
