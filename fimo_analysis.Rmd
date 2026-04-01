@@ -4,11 +4,11 @@ output: html_document
 ---
 
 ```{r}
-## ============================================================
+
 ## FIMO E-box summaries:
 ##  1) # of sites per promoter (no capping)
 ##  2) Positional distribution along -1500..+150 (area+line)
-## ============================================================
+
 
 library(dplyr)
 library(readr)
@@ -17,16 +17,16 @@ library(purrr)
 library(ggplot2)
 library(tibble)
 
-## ------------------------------------------------------------
-## 0. Set base directory (folder that contains diet_model*/wheat_model*)
-## ------------------------------------------------------------
 
-base_dir = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/fimo_output"
+# 0. Set base directory (folder that contains diet_model*/wheat_model*)
+
+
+base_dir = "/fimo_output"
 setwd(base_dir)
 
-## ------------------------------------------------------------
-## 1. Read all FIMO TSV files and annotate condition + model
-## ------------------------------------------------------------
+
+# 1. Read all FIMO TSV files and annotate condition + model
+
 
 fimo_files = list.files(
   path       = ".",
@@ -54,10 +54,10 @@ fimo_all = purrr::map_dfr(fimo_files, function(f) {
     )
 })
 
-## ------------------------------------------------------------
-## 2. Deduplicate hits so each E-box site is counted once
-##    (collapse + / - strands for same (seq, motif, start, stop))
-## ------------------------------------------------------------
+
+# 2. Deduplicate hits so each E-box site is counted once
+#    (collapse + / - strands for same (seq, motif, start, stop))
+
 
 fimo_sites = fimo_all %>%
   group_by(cond, model, sequence_name, motif_id, motif_alt_id, start, stop) %>%
@@ -68,9 +68,9 @@ fimo_sites = fimo_all %>%
     .groups = "drop"
   )
 
-## ------------------------------------------------------------
-## 3. Per-promoter counts of E-box sites (NO capping)
-## ------------------------------------------------------------
+
+# 3. Per-promoter counts of E-box sites (NO capping)
+
 
 seq_counts = fimo_sites %>%
   group_by(cond, model, sequence_name) %>%
@@ -78,7 +78,7 @@ seq_counts = fimo_sites %>%
     n_sites = n(),
     .groups = "drop"
   )
-# ---- Hard-coded total promoters per condition/model ----
+# Hard-coded total promoters per condition/model 
 total_promoters = tibble::tribble(
   ~cond,   ~model, ~total_prom,
   "wheat", "1",    7766L,
@@ -126,10 +126,10 @@ max_sites_w = if (nrow(hist_counts_wheat) > 0) max(hist_counts_wheat$n_sites) el
 max_sites_d = if (nrow(hist_counts_diet)  > 0) max(hist_counts_diet$n_sites)  else 0
 
 
-## ------------------------------------------------------------
-## 4. Plot: # of E-boxes per promoter (wheat & diet),
-##          including 0-hit promoters
-## ------------------------------------------------------------
+
+# 4. Plot: # of E-boxes per promoter (wheat & diet),
+#          including 0-hit promoters
+
 
 p_wheat_counts = ggplot(hist_counts_wheat,
                          aes(x = n_sites, y = freq)) +
@@ -174,9 +174,9 @@ p_diet_counts = ggplot(hist_counts_diet,
   )
 
 
-## ------------------------------------------------------------
-## 5. Convert positions to bp relative to TSS (-1500 .. +150)
-## ------------------------------------------------------------
+
+# 5. Convert positions to bp relative to TSS (-1500 .. +150)
+
 
 promoter_upstream = 1500    # bp upstream of TSS
 promoter_length   = 1650    # total length (−1500 .. +149)
@@ -193,9 +193,9 @@ fimo_pos_diet  = fimo_pos %>% filter(cond == "diet")
 library(tidyr)  # for replace_na
 
 
-## ------------------------------------------------------------
-## Position plots: line + filled area, no smoothing
-## ------------------------------------------------------------
+
+# Position plots: line + filled area, no smoothing
+
 
 bin_width = 25   # bp per bin; adjust to taste (e.g. 25, 50)
 
@@ -280,9 +280,9 @@ print(p_wheat_pos)
 print(p_diet_pos)
 
 
-## ------------------------------------------------------------
-## 7. Optional: save plots to disk
-## ------------------------------------------------------------
+
+# 7. save plots to disk
+
 
 # ggsave("wheat_Ebox_counts_per_promoter.svg", p_wheat_counts,
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = svglite::svglite)
@@ -294,9 +294,9 @@ print(p_diet_pos)
 # ggsave("diet_Ebox_positional_distribution.svg",  p_diet_pos,
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = svglite::svglite)
 
-## ------------------------------------------------------------
-## 8. To visually inspect in R
-## ------------------------------------------------------------
+
+# 8. To visually inspect in R
+
 
 print(p_wheat_counts)
 print(p_diet_counts)
@@ -371,7 +371,7 @@ seq_counts = fimo_sites %>%
     n_sites = n(),
     .groups = "drop"
   )
-# ---- Hard-coded total promoters per condition/model ----
+# Hard-coded total promoters per condition/model 
 total_promoters = tibble::tribble(
   ~cond,   ~model, ~total_prom,
   "wheat", "1",    7766L,
@@ -419,10 +419,10 @@ max_sites_w = if (nrow(hist_counts_wheat) > 0) max(hist_counts_wheat$n_sites) el
 max_sites_d = if (nrow(hist_counts_diet)  > 0) max(hist_counts_diet$n_sites)  else 0
 
 
-## ------------------------------------------------------------
-## 4. Plot: # of E-boxes per promoter (wheat & diet),
-##          including 0-hit promoters
-## ------------------------------------------------------------
+
+# 4. Plot: # of E-boxes per promoter (wheat & diet),
+#          including 0-hit promoters
+
 
 p_wheat_counts = ggplot(hist_counts_wheat,
                          aes(x = n_sites, y = freq)) +
@@ -467,9 +467,9 @@ p_diet_counts = ggplot(hist_counts_diet,
   )
 
 
-## ------------------------------------------------------------
-## 5. Convert positions to bp relative to TSS (-1500 .. +150)
-## ------------------------------------------------------------
+
+# 5. Convert positions to bp relative to TSS (-1500 .. +150)
+
 
 promoter_upstream = 1500    # bp upstream of TSS
 promoter_length   = 1650    # total length (−1500 .. +149)
@@ -486,9 +486,9 @@ fimo_pos_diet  = fimo_pos %>% filter(cond == "diet")
 library(tidyr)  # for replace_na
 
 
-## ------------------------------------------------------------
-## Position plots: line + filled area, no smoothing
-## ------------------------------------------------------------
+
+# Position plots: line + filled area, no smoothing
+
 
 bin_width = 25   # bp per bin; adjust to taste (e.g. 25, 50)
 
@@ -573,9 +573,9 @@ print(p_wheat_pos)
 print(p_diet_pos)
 
 
-## ------------------------------------------------------------
-## 7. Optional: save plots to disk
-## ------------------------------------------------------------
+
+# 7.  save plots to disk
+
 
 # ggsave("wheat_Ebox_counts_per_promoter.pdf", p_wheat_counts,
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = "pdf")
@@ -586,10 +586,6 @@ print(p_diet_pos)
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = "pdf")
 # ggsave("diet_Ebox_positional_distribution.pdf",  p_diet_pos,
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = "pdf")
-
-## ------------------------------------------------------------
-## 8. To visually inspect in R
-## ------------------------------------------------------------
 
 print(p_wheat_counts)
 print(p_diet_counts)
@@ -607,12 +603,11 @@ library(tidyr)
 library(ggplot2)
 library(scales)
 
-## ------------------------------------------------------------
-## Percent plots for number of unique E-boxes per promoter
-## Assumes these already exist from your earlier code:
-##   - fimo_sites
-##   - total_promoters
-## ------------------------------------------------------------
+# Percent plots for number of unique E-boxes per promoter
+# Assumes these already exist 
+#   - fimo_sites
+#   - total_promoters
+
 
 # Count unique reduced E-box sites per promoter
 seq_counts = fimo_sites %>%
@@ -656,9 +651,9 @@ hist_counts_diet  = hist_counts %>% filter(cond == "diet")
 max_sites_w = if (nrow(hist_counts_wheat) > 0) max(hist_counts_wheat$n_sites) else 0
 max_sites_d = if (nrow(hist_counts_diet)  > 0) max(hist_counts_diet$n_sites)  else 0
 
-## ------------------------------------------------------------
-## Plot: percent of promoters with 0,1,2,3... unique E-boxes
-## ------------------------------------------------------------
+
+# Plot: percent of promoters with 0,1,2,3... unique E-boxes
+
 
 p_wheat_pct = ggplot(hist_counts_wheat, aes(x = n_sites, y = pct)) +
   geom_col(color = "black", fill = "#004488") +
@@ -697,7 +692,7 @@ p_diet_pct = ggplot(hist_counts_diet, aes(x = n_sites, y = pct)) +
 print(p_wheat_pct)
 print(p_diet_pct)
 
-# Optional save
+# save
 # ggsave("wheat_Ebox_percent_per_promoter.pdf", p_wheat_pct,
 #        width = 3, height = 4.5, units = "in", dpi = 900, device = "pdf")
 # ggsave("diet_Ebox_percent_per_promoter.pdf", p_diet_pct,
