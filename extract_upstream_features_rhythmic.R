@@ -7,10 +7,10 @@ library(Biostrings)
 library(dplyr)
 
 # sql database can be loaded, its good to reset your dir here. 
-setwd('C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/')
+setwd('./genome_gff/')
 
 # set path to indexed genome 
-rpadi_genome = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/R_padi_v2.fasta"
+rpadi_genome = "./R_padi_v2.fasta"
 
 # make FaFile if not already loaded
 rpadi_fafile = FaFile(rpadi_genome)

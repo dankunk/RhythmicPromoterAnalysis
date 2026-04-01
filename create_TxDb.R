@@ -14,7 +14,7 @@ library(GenomicFeatures)
 library(Rsamtools)
 
 # setting the wd allows you to read/write to this dir without specifying full paths.
-setwd('C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/')
+setwd('./genome_gff/')
 # its also good to do this before saving anything just in case you forgot to set it!
 
 # Path to your genome FASTA
@@ -42,7 +42,7 @@ head(chrominfo_df)
 
 
 # load path to gff file
-rpadi_gff = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/Rpadi_v2.gff"
+rpadi_gff = "./genome_gff/Rpadi_v2.gff"
 rpadi_gff = "GCF_020882245.1_ASM2088224v1_genomic.gff"
 
 
@@ -71,7 +71,7 @@ rpadi_txdb
 # DBSCHEMAVERSION: 1.2
 
 # we can save the database, but first set the wd to the dir of interest
-setwd('C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/')
+setwd('./genome_gff/')
 saveDb(rpadi_txdb, file="rpadi_V2_txdb.sqlite")
 
 saveDb(rpadi_txdb, file="rpadi_V4_txdb.sqlite")

@@ -8,3 +8,7 @@
 /genome_gff/rpadi_V4_txdb.sqlite
 /Xstreme_results.Rmd
 /Xstreme_output/*
+/model_promoter_fastas/*
+fimo_output/
+meme_files/
+genome_gff/JASPAR2024_CORE_insects_non-redundant_pfms_meme.txt

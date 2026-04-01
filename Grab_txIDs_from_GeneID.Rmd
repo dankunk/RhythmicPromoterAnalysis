@@ -3,6 +3,8 @@ title: "Grab_txIDs_from_GeneID"
 output: html_document
 ---
 
+Example to grab transcript IDs from Gene IDs.
+
 ```{r}
 ## ---- packages ----
 # install.packages(c("dplyr","readr"))           # if needed
@@ -14,13 +16,13 @@ library(GenomicFeatures)
 ## ---- inputs: your two columns of LOCs ----
 # Replace this block with readr::read_tsv("your_two_col_file.tsv", col_names = c("streme5_spps","meme8_mad_bhlh"))
 loc_pairs =
- as_tibble( read.csv("C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/hlh_spps_kruppel-like_geneIDS.csv", header = T))
+ as_tibble( read.csv("./genome_gff/hlh_spps_kruppel-like_geneIDS.csv", header = T))
 
 ## ---- path to your GFF ----
-gff_path = "C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/GCF_020882245.1_ASM2088224v1_genomic.gff"  # <-- set this
+gff_path = "./genome_gff/GCF_020882245.1_ASM2088224v1_genomic.gff"  # <-- set this
 
 ## ---- build LOC -> XM mapping from the GFF via TxDb ----
-txdb = loadDb("C:/Users/danie/OneDrive - Colostate/NIFA_PROJECT/Obj1/analysis/promoter_analysis/genome_gff/rpadi_V4_txdb.sqlite")
+txdb = loadDb("./genome_gff/rpadi_V4_txdb.sqlite")
 
 # Be tolerant of TxDb column name variants across versions
 tx_cols   = columns(txdb)

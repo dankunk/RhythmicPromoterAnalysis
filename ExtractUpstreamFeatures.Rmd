@@ -147,23 +147,27 @@ Our dryR model transcript IDs can be found in the "./model_promoter_fastas/dryR_
 Our promoter fasta files will ultimately be saved to the "./model_promoter_fastas/" directory. 
 ```{r}
 # loading wheat models
-wheat_model2 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model2.txt", col.names = "geneName")
-wheat_model3 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model3.txt", col.names = "geneName")
-wheat_model4 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model4.txt", col.names = "geneName")
-wheat_model5 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/wheat_model5.txt", col.names = "geneName")
+wheat_model1 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/wheat_model1.txt", col.names = "geneName")
+wheat_model2 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/wheat_model2.txt", col.names = "geneName")
+wheat_model3 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/wheat_model3.txt", col.names = "geneName")
+wheat_model4 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/wheat_model4.txt", col.names = "geneName")
+wheat_model5 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/wheat_model5.txt", col.names = "geneName")
 
 # diet models
-diet_model2 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model2.txt", col.names = "geneName")
-diet_model3 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model3.txt", col.names = "geneName")
-diet_model4 = read.table("./model_promoter_fastas/dryR_v2_geneIDs/diet_model4.txt", col.names = "geneName")
+diet_model1 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/diet_model1.txt", col.names = "geneName")
+diet_model2 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/diet_model2.txt", col.names = "geneName")
+diet_model3 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/diet_model3.txt", col.names = "geneName")
+diet_model4 = read.table("./model_promoter_fastas/dryR_v2_fixedAmp_geneIDs/diet_model4.txt", col.names = "geneName")
 
 # write wheat promoter files
+write_promoters_for(wheat_model1, "./model_promoter_fastas/wheat_model1_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(wheat_model2, "./model_promoter_fastas/wheat_model2_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(wheat_model3, "./model_promoter_fastas/wheat_model3_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(wheat_model4, "./model_promoter_fastas/wheat_model4_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(wheat_model5, "./model_promoter_fastas/wheat_model5_promoters_1500bp-150bp_5to3.fasta")
 
 # write diet promoters
+write_promoters_for(diet_model1, "./model_promoter_fastas/diet_model1_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(diet_model2, "./model_promoter_fastas/diet_model2_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(diet_model3, "./model_promoter_fastas/diet_model3_promoters_1500bp-150bp_5to3.fasta")
 write_promoters_for(diet_model4, "./model_promoter_fastas/diet_model4_promoters_1500bp-150bp_5to3.fasta")
